@@ -80,12 +80,22 @@ try {
     Write-Verbose "Script directory: $ScriptDir"
     Write-Verbose "Workspace path: $WorkspacePath"
 
-    # Base docker run arguments - mount both workspace and scripts
+    $volumeMounts = @(
+        '-v', "${WorkspacePath}:C:\workspace",
+        '-v', "${ScriptDir}:C:\scripts"
+    )
+    
+    # Add VIPM config volume if provided
+    if ($VIPMConfigDir -and (Test-Path $VIPMConfigDir)) {
+        Write-Information "Mounting VIPM configuration from: $VIPMConfigDir" -InformationAction Continue
+        $volumeMounts += @('-v', "${VIPMConfigDir}:C:\vipm-config")
+    }
+
+    # Base docker run arguments
     $baseDockerArgs = @(
         'run',
-        '--rm',
-        '-v', "${WorkspacePath}:C:\workspace",
-        '-v', "${ScriptDir}:C:\scripts",
+        '--rm'
+    ) + $volumeMounts + @(
         '-w', 'C:\workspace',
         $DockerImage
     )
@@ -93,7 +103,11 @@ try {
     # Step 1: Setup VIPM and LUnit inside container
     Write-Information "Setting up VIPM and LUnit in container..." -InformationAction Continue
     
-    $setupCmd = "Set-Location C:\scripts; .\SetupLUnit.ps1 -LVVersion $LVVersion -LVBitness $LVBitness -Verbose -InformationAction Continue"
+    $setupCmd = if ($VIPMConfigDir) {
+        "Set-Location C:\scripts; .\SetupLUnit.ps1 -LVVersion $LVVersion -LVBitness $LVBitness -VIPMConfigDir 'C:\vipm-config' -Verbose -InformationAction Continue"
+    } else {
+        "Set-Location C:\scripts; .\SetupLUnit.ps1 -LVVersion $LVVersion -LVBitness $LVBitness -Verbose -InformationAction Continue"
+    }
     
     $setupArgs = $baseDockerArgs + @(
         'powershell.exe', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', $setupCmd

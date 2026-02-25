@@ -12,6 +12,9 @@
 .PARAMETER LVBitness
   LabVIEW bitness ("32" or "64").
 
+.PARAMETER VIPMConfigDir
+  Path to directory containing VIPM configuration files (jki.conf, Settings.ini).
+
 .PARAMETER VipmInstallerUrl
   URL to download the VIPM installer.
 
@@ -32,6 +35,9 @@ param(
     [string]$LVBitness,
     
     [Parameter(Mandatory = $false)]
+    [string]$VIPMConfigDir,
+
+    [Parameter(Mandatory = $false)]
     [string]$VipmInstallerUrl = "https://packages.jki.net/vipm/preview/vipm-setup-latest-preview.exe"
 )
 
@@ -42,6 +48,35 @@ $ProgressPreference = 'SilentlyContinue'
 try {
     Write-Verbose "Starting LUnit for G-CLI setup process..."
     Write-Information "Setting up LUnit for LabVIEW $LVVersion ($LVBitness-bit)" -InformationAction Continue
+
+    if ($VIPMConfigDir -and (Test-Path $VIPMConfigDir)) {
+        Write-Information "Configuring VIPM from provided config directory..." -InformationAction Continue
+        
+        $jkiDir = "C:\ProgramData\JKI"
+        $vipmDir = "C:\ProgramData\JKI\VIPM"
+        
+        # Create directories
+        New-Item -ItemType Directory -Path $jkiDir -Force | Out-Null
+        New-Item -ItemType Directory -Path $vipmDir -Force | Out-Null
+        
+        # Copy jki.conf if exists
+        $sourceJkiConf = Join-Path $VIPMConfigDir "jki.conf"
+        if (Test-Path $sourceJkiConf) {
+            $destJkiConf = Join-Path $jkiDir "jki.conf"
+            Copy-Item -Path $sourceJkiConf -Destination $destJkiConf -Force
+            Write-Information "Copied jki.conf to $destJkiConf" -InformationAction Continue
+        }
+        
+        # Copy Settings.ini if exists
+        $sourceSettingsIni = Join-Path $VIPMConfigDir "Settings.ini"
+        if (Test-Path $sourceSettingsIni) {
+            $destSettingsIni = Join-Path $vipmDir "Settings.ini"
+            Copy-Item -Path $sourceSettingsIni -Destination $destSettingsIni -Force
+            Write-Information "Copied Settings.ini to $destSettingsIni" -InformationAction Continue
+        }
+        
+        Write-Information "VIPM configuration applied successfully" -InformationAction Continue
+    }
     
     $VipmExe = "C:\Program Files\JKI\VI Package Manager\support\vipm.exe"
     
