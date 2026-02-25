@@ -69,33 +69,32 @@ try {
         throw "Failed to pull Docker image: $DockerImage"
     }
 
-    # Prepare volume mounts
-    $volumeMount = "${WorkspacePath}:C:\workspace"
-    Write-Verbose "Volume mount: $volumeMount"
+    $normalizedWorkspace = $WorkspacePath.Replace('\', '/')
+    if ($normalizedWorkspace -match '^([A-Z]):(.+)$') {
+        # Convert Windows path to Docker volume format: C:\path -> /c/path
+        $normalizedWorkspace = "/$($matches[1].ToLower())$($matches[2])"
+    }
+    
+    Write-Verbose "Normalized workspace for Docker: $normalizedWorkspace"
 
-    # Build docker run command arguments
-    $dockerArgs = @(
+    # Base docker run arguments
+    $baseDockerArgs = @(
         'run',
         '--rm',
-        '-v', $volumeMount
+        '-v', "${WorkspacePath}:C:\workspace",
+        '-w', 'C:\workspace',
+        $DockerImage
     )
 
-    # Setup VIPM and LUnit inside container
+    # Step 1: Setup VIPM and LUnit inside container
     Write-Information "Setting up VIPM and LUnit in container..." -InformationAction Continue
     
-    $setupScript = @"
-Set-StrictMode -Version Latest
-`$ErrorActionPreference = 'Stop'
-C:\workspace\scripts\run-unit-tests-docker\SetupLUnit.ps1 -LVVersion $LVVersion -LVBitness $LVBitness -Verbose
-"@
-
-    $encodedSetup = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($setupScript))
-    
-    $setupArgs = $dockerArgs + @(
-        $DockerImage,
-        'pwsh', '-NoProfile', '-EncodedCommand', $encodedSetup
+    $setupArgs = $baseDockerArgs + @(
+        'powershell.exe', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command',
+        "& C:\workspace\scripts\run-unit-tests-docker\SetupLunit.ps1 -LVVersion $LVVersion -LVBitness $LVBitness -Verbose -InformationAction Continue"
     )
 
+    Write-Verbose "Running Docker command: docker $($setupArgs -join ' ')"
     & docker @setupArgs
     
     if ($LASTEXITCODE -ne 0) {
@@ -105,28 +104,23 @@ C:\workspace\scripts\run-unit-tests-docker\SetupLUnit.ps1 -LVVersion $LVVersion 
     # Run unit tests inside container
     Write-Information "Running unit tests in container..." -InformationAction Continue
     
-    $testScriptArgs = "-LVVersion $LVVersion -LVBitness $LVBitness"
+    $testScriptCmd = "& C:\workspace\scripts\run-unit-tests-docker\RunUnitTests.ps1 -LVVersion $LVVersion -LVBitness $LVBitness"
+    
     if ($ProjectPath) {
-        $testScriptArgs += " -ProjectPath C:\workspace\$ProjectPath"
+        $testScriptCmd += " -ProjectPath 'C:\workspace\$ProjectPath'"
     }
     if ($OpenProjectBeforeRun) {
-        $testScriptArgs += " -OpenProjectBeforeRun"
+        $testScriptCmd += " -OpenProjectBeforeRun"
     }
-
-    $testScript = @"
-Set-StrictMode -Version Latest
-`$ErrorActionPreference = 'Stop'
-Set-Location C:\workspace
-C:\workspace\scripts\run-unit-tests-docker\RunUnitTests.ps1 $testScriptArgs -Verbose
-"@
-
-    $encodedTest = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($testScript))
     
-    $testArgs = $dockerArgs + @(
-        $DockerImage,
-        'pwsh', '-NoProfile', '-EncodedCommand', $encodedTest
+    $testScriptCmd += " -Verbose -InformationAction Continue"
+
+    $testArgs = $baseDockerArgs + @(
+        'powershell.exe', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command',
+        $testScriptCmd
     )
 
+    Write-Verbose "Running Docker command: docker $($testArgs -join ' ')"
     & docker @testArgs
     
     $exitCode = $LASTEXITCODE
