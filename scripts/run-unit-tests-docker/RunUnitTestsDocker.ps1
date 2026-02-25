@@ -86,7 +86,7 @@ try {
     $setupScript = @"
 Set-StrictMode -Version Latest
 `$ErrorActionPreference = 'Stop'
-C:\workspace\scripts\run-unit-tests-docker\SetupLunit.ps1 -LVVersion $LVVersion -LVBitness $LVBitness -Verbose
+C:\workspace\scripts\run-unit-tests-docker\SetupLUnit.ps1 -LVVersion $LVVersion -LVBitness $LVBitness -Verbose
 "@
 
     $encodedSetup = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($setupScript))
