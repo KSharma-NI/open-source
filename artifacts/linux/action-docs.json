@@ -568,7 +568,7 @@
       }
     },
     "Invoke-RunUnitTests": {
-      "description": "Runs LabVIEW unit tests. MinimumSupportedLVVersion: Minimum LabVIEW version that the project supports. SupportedBitness: Target LabVIEW bitness (32- or 64-bit). DryRun: If set, prints the command instead of executing it. gcliPath: Optional path prepended to PATH for locating the g CLI.",
+      "description": "Runs LabVIEW unit tests. MinimumSupportedLVVersion: Minimum LabVIEW version that the project supports. SupportedBitness: Target LabVIEW bitness (32- or 64-bit). ProjectPath: (Optional) Path to the LabVIEW project file. OpenProjectBeforeRun: (Optional) If set, runs OpenProj.vi before tests. DryRun: If set, prints the command instead of executing it. gcliPath: Optional path prepended to PATH for locating the g CLI.",
       "parameters": {
         "DryRun": {
           "type": "boolean",
@@ -588,17 +588,62 @@
         "OpenProjectBeforeRun": {
           "type": "boolean",
           "required": false,
-          "description": ""
+          "description": "(Optional) If set, runs OpenProj"
         },
         "ProjectPath": {
           "type": "string",
           "required": false,
-          "description": ""
+          "description": "(Optional) Path to the LabVIEW project file"
         },
         "SupportedBitness": {
           "type": "string",
           "required": true,
           "description": "Target LabVIEW bitness (32- or 64-bit)"
+        }
+      }
+    },
+    "Invoke-RunUnitTestsDocker": {
+      "description": "Run LabVIEW unit tests in Docker container with VIPM and LUnit setup. DockerImage: Docker image to use (e.g., nationalinstruments/labview:2026q1-windows). LVVersion: LabVIEW version (e.g., \"2026\"). LVBitness: LabVIEW bitness (\"32\" or \"64\"). ProjectPath: Optional path to LabVIEW project file relative to workspace. WorkspacePath: Path to mount as workspace in container. OpenProjectBeforeRun: If set, opens project before running tests. DryRun: If set, prints the command instead of executing it. gcliPath: Optional path prepended to PATH for locating the g CLI.",
+      "parameters": {
+        "DockerImage": {
+          "type": "string",
+          "required": true,
+          "description": "Docker image to use (e"
+        },
+        "DryRun": {
+          "type": "boolean",
+          "required": false,
+          "description": "If set, prints the command instead of executing it"
+        },
+        "gcliPath": {
+          "type": "string",
+          "required": false,
+          "description": "Optional path prepended to PATH for locating the g CLI"
+        },
+        "LVBitness": {
+          "type": "string",
+          "required": true,
+          "description": "LabVIEW bitness (\"32\" or \"64\")"
+        },
+        "LVVersion": {
+          "type": "string",
+          "required": true,
+          "description": "LabVIEW version (e"
+        },
+        "OpenProjectBeforeRun": {
+          "type": "boolean",
+          "required": false,
+          "description": "If set, opens project before running tests"
+        },
+        "ProjectPath": {
+          "type": "string",
+          "required": false,
+          "description": "Optional path to LabVIEW project file relative to workspace"
+        },
+        "WorkspacePath": {
+          "type": "string",
+          "required": false,
+          "description": "Path to mount as workspace in container"
         }
       }
     },
@@ -1607,6 +1652,71 @@
         "description": "If true, simulate the action without side effects.",
         "required": false,
         "default": false,
+        "type": "string"
+      }
+    ],
+    "run-unit-tests-docker": [
+      {
+        "name": "docker_image",
+        "description": "Docker image to use (e.g., nationalinstruments/labview:2026q1-windows).",
+        "required": true,
+        "default": "nationalinstruments/labview:2026q1-windows",
+        "type": "string"
+      },
+      {
+        "name": "lv_version",
+        "description": "LabVIEW version (e.g., 2026).",
+        "required": true,
+        "default": "",
+        "type": "string"
+      },
+      {
+        "name": "lv_bitness",
+        "description": "LabVIEW bitness (32 or 64).",
+        "required": true,
+        "default": "64",
+        "type": "string"
+      },
+      {
+        "name": "project_path",
+        "description": "Path to LabVIEW project file (*.lvproj) relative to workspace.",
+        "required": false,
+        "default": "",
+        "type": "string"
+      },
+      {
+        "name": "workspace_path",
+        "description": "Path to mount as workspace in container.",
+        "required": false,
+        "default": "",
+        "type": "string"
+      },
+      {
+        "name": "open_project_before_run",
+        "description": "If true, opens the project before running tests.",
+        "required": false,
+        "default": "false",
+        "type": "string"
+      },
+      {
+        "name": "working_directory",
+        "description": "Working directory where the action will run.",
+        "required": false,
+        "default": "",
+        "type": "string"
+      },
+      {
+        "name": "log_level",
+        "description": "Verbosity level (ERROR|WARN|INFO|DEBUG).",
+        "required": false,
+        "default": "INFO",
+        "type": "string"
+      },
+      {
+        "name": "dry_run",
+        "description": "If true, simulate the action without side effects.",
+        "required": false,
+        "default": "false",
         "type": "string"
       }
     ],

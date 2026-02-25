@@ -25,6 +25,7 @@
     'Invoke-RevertDevelopmentMode'
     'Invoke-RunPesterTests'
     'Invoke-RunUnitTests'
+    'Invoke-RunUnitTestsDocker'
     'Invoke-SetDevelopmentMode'
   )
 

@@ -1,0 +1,63 @@
+name: 'Run Unit Tests in Docker'
+description: 'Runs LabVIEW unit tests inside a Docker container with VIPM and LUnit setup'
+inputs:
+  docker_image:
+    description: 'Docker image to use (e.g., nationalinstruments/labview:2026q1-windows).'
+    required: true
+    default: 'nationalinstruments/labview:2026q1-windows'
+  lv_version:
+    description: 'LabVIEW version (e.g., 2026).'
+    required: true
+  lv_bitness:
+    description: 'LabVIEW bitness (32 or 64).'
+    required: true
+    default: '64'
+  project_path:
+    description: 'Path to LabVIEW project file (*.lvproj) relative to workspace.'
+    required: false
+  workspace_path:
+    description: 'Path to mount as workspace in container.'
+    required: false
+  open_project_before_run:
+    description: 'If true, opens the project before running tests.'
+    required: false
+    default: 'false'
+  working_directory:
+    description: 'Working directory where the action will run.'
+    required: false
+  log_level:
+    description: 'Verbosity level (ERROR|WARN|INFO|DEBUG).'
+    default: 'INFO'
+    required: false
+  dry_run:
+    description: 'If true, simulate the action without side effects.'
+    default: 'false'
+    required: false
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Dispatch run-unit-tests-docker
+      shell: pwsh
+      run: |
+        $ErrorActionPreference = 'Stop'
+        $args = @{
+          DockerImage = '${{ inputs.docker_image }}'
+          LVVersion   = '${{ inputs.lv_version }}'
+          LVBitness   = '${{ inputs.lv_bitness }}'
+        }
+        if ('${{ inputs.project_path }}') { $args['ProjectPath'] = '${{ inputs.project_path }}' }
+        if ('${{ inputs.workspace_path }}') { $args['WorkspacePath'] = '${{ inputs.workspace_path }}' }
+        if ('${{ inputs.open_project_before_run }}' -eq 'true') { $args['OpenProjectBeforeRun'] = $true }
+        
+        $params = @{
+          ActionName = 'run-unit-tests-docker'
+          Args       = $args
+          LogLevel   = '${{ inputs.log_level }}'
+        }
+        if ('${{ inputs.dry_run }}' -eq 'true') { $params['DryRun'] = $true }
+        if ('${{ inputs.working_directory }}') { $params['WorkingDirectory'] = '${{ inputs.working_directory }}' }
+        
+        $script = Join-Path $env:GITHUB_ACTION_PATH '..' 'actions' 'common-dispatch.ps1'
+        & $script @params
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

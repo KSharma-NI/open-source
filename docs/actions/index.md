@@ -17,6 +17,7 @@ List of available GitHub Actions.
 - [revert-development-mode](./revert-development-mode.md): Restore the repository from development mode by restoring packaged sources and closing LabVIEW.
 - [run-pester-tests](./run-pester-tests.md): Run PowerShell Pester tests in a repository.
 - [run-unit-tests](./run-unit-tests.md): Run LabVIEW unit tests via the LabVIEW Unit Test Framework CLI and report pass/fail/error using standard exit codes.
+- [run-unit-tests-docker](./run-unit-tests-docker.md): RRuns LabVIEW unit tests inside a Docker container with automated setup of VI Package Manager (VIPM) and LUnit for G-CLI.
 - [set-development-mode](./set-development-mode.md): Configure the repository for development mode by removing packed libraries, adding tokens, preparing sources, and closing LabVIEW.
 - [setup-mkdocs](./setup-mkdocs.md): Install a pinned MkDocs with caching.
 

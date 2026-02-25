@@ -486,6 +486,47 @@ function Invoke-RunUnitTests {
     return Invoke-OpenSourceActionScript -ScriptSegments @('run-unit-tests','RunUnitTests.ps1') -Arguments $args -DryRun:$DryRun -gcliPath $gcliPath
 }
 
+# Run LabVIEW unit tests in Docker container with VIPM and LUnit setup.
+# DockerImage: Docker image to use (e.g., nationalinstruments/labview:2026q1-windows).
+# LVVersion: LabVIEW version (e.g., "2026").
+# LVBitness: LabVIEW bitness ("32" or "64").
+# ProjectPath: Optional path to LabVIEW project file relative to workspace.
+# WorkspacePath: Path to mount as workspace in container.
+# OpenProjectBeforeRun: If set, opens project before running tests.
+# DryRun: If set, prints the command instead of executing it.
+# gcliPath: Optional path prepended to PATH for locating the g CLI.
+function Invoke-RunUnitTestsDocker {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)] [string] $DockerImage,
+        [Parameter(Mandatory)] [string] $LVVersion,
+        [Parameter(Mandatory)] [ValidateSet("32", "64")] [string] $LVBitness,
+        [Parameter()] [string] $ProjectPath,
+        [Parameter()] [string] $WorkspacePath,
+        [switch] $OpenProjectBeforeRun,
+        [switch] $DryRun,
+        [string] $gcliPath
+    )
+    Write-Information "Invoking RunUnitTestsDocker with Docker image=$DockerImage, LV=$LVVersion ($LVBitness-bit)" -InformationAction Continue
+    
+    $arguments = @{
+        DockerImage = $DockerImage
+        LVVersion   = $LVVersion
+        LVBitness   = $LVBitness
+    }
+    if ($ProjectPath) { $arguments['ProjectPath'] = $ProjectPath }
+    if ($WorkspacePath) { $arguments['WorkspacePath'] = $WorkspacePath }
+    if ($OpenProjectBeforeRun) { $arguments['OpenProjectBeforeRun'] = $true }
+    
+    $result = Invoke-OpenSourceActionScript `
+        -ScriptSegments @('run-unit-tests-docker', 'RunUnitTestsDocker.ps1') `
+        -Arguments $arguments `
+        -DryRun:$DryRun `
+        -gcliPath $gcliPath
+    
+    return $result
+}
+
 # Configures the repository for development mode.
 # RelativePath: Normalized path to the project root relative to the working directory.
 # DryRun: If set, prints the command instead of executing it.

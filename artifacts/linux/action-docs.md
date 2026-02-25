@@ -230,18 +230,35 @@ pwsh ./actions/Invoke-OSAction.ps1 -ActionName Invoke-RunPesterTests -ArgsJson '
 ```
 
 #### Invoke-RunUnitTests
-Runs LabVIEW unit tests. MinimumSupportedLVVersion: Minimum LabVIEW version that the project supports. SupportedBitness: Target LabVIEW bitness (32- or 64-bit). DryRun: If set, prints the command instead of executing it. gcliPath: Optional path prepended to PATH for locating the g CLI.
+Runs LabVIEW unit tests. MinimumSupportedLVVersion: Minimum LabVIEW version that the project supports. SupportedBitness: Target LabVIEW bitness (32- or 64-bit). ProjectPath: (Optional) Path to the LabVIEW project file. OpenProjectBeforeRun: (Optional) If set, runs OpenProj.vi before tests. DryRun: If set, prints the command instead of executing it. gcliPath: Optional path prepended to PATH for locating the g CLI.
 | Parameter | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
 | DryRun | boolean | false |  | If set, prints the command instead of executing it |
 | MinimumSupportedLVVersion | string | true |  | Minimum LabVIEW version that the project supports |
-| OpenProjectBeforeRun | boolean | false |  |  |
-| ProjectPath | string | false |  |  |
+| OpenProjectBeforeRun | boolean | false |  | (Optional) If set, runs OpenProj |
+| ProjectPath | string | false |  | (Optional) Path to the LabVIEW project file |
 | SupportedBitness | string | true |  | Target LabVIEW bitness (32- or 64-bit) |
 | gcliPath | string | false |  | Optional path prepended to PATH for locating the g CLI |
 
 ```powershell
 pwsh ./actions/Invoke-OSAction.ps1 -ActionName Invoke-RunUnitTests -ArgsJson '{}'
+```
+
+#### Invoke-RunUnitTestsDocker
+Run LabVIEW unit tests in Docker container with VIPM and LUnit setup. DockerImage: Docker image to use (e.g., nationalinstruments/labview:2026q1-windows). LVVersion: LabVIEW version (e.g., "2026"). LVBitness: LabVIEW bitness ("32" or "64"). ProjectPath: Optional path to LabVIEW project file relative to workspace. WorkspacePath: Path to mount as workspace in container. OpenProjectBeforeRun: If set, opens project before running tests. DryRun: If set, prints the command instead of executing it. gcliPath: Optional path prepended to PATH for locating the g CLI.
+| Parameter | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| DockerImage | string | true |  | Docker image to use (e |
+| DryRun | boolean | false |  | If set, prints the command instead of executing it |
+| LVBitness | string | true |  | LabVIEW bitness ("32" or "64") |
+| LVVersion | string | true |  | LabVIEW version (e |
+| OpenProjectBeforeRun | boolean | false |  | If set, opens project before running tests |
+| ProjectPath | string | false |  | Optional path to LabVIEW project file relative to workspace |
+| WorkspacePath | string | false |  | Path to mount as workspace in container |
+| gcliPath | string | false |  | Optional path prepended to PATH for locating the g CLI |
+
+```powershell
+pwsh ./actions/Invoke-OSAction.ps1 -ActionName Invoke-RunUnitTestsDocker -ArgsJson '{}'
 ```
 
 #### Invoke-SetDevelopmentMode
@@ -468,6 +485,19 @@ pwsh ./actions/Invoke-OSAction.ps1 -ActionName Set-LogLevel -ArgsJson '{}'
 | project_path | string | false |  | Path to the LabVIEW project file. If not provided, searches upward from script location. |
 | open_project_before_run | string | false | false | If true, runs OpenProj.vi via LabVIEWCLI before executing tests. |
 | gcli_path | string | false |  | Optional path to the g-cli executable. |
+| working_directory | string | false |  | Working directory where the action will run. |
+| log_level | string | false | INFO | Verbosity level (ERROR|WARN|INFO|DEBUG). |
+| dry_run | string | false | false | If true, simulate the action without side effects. |
+
+#### run-unit-tests-docker
+| Name | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| docker_image | string | true | nationalinstruments/labview:2026q1-windows | Docker image to use (e.g., nationalinstruments/labview:2026q1-windows). |
+| lv_version | string | true |  | LabVIEW version (e.g., 2026). |
+| lv_bitness | string | true | 64 | LabVIEW bitness (32 or 64). |
+| project_path | string | false |  | Path to LabVIEW project file (*.lvproj) relative to workspace. |
+| workspace_path | string | false |  | Path to mount as workspace in container. |
+| open_project_before_run | string | false | false | If true, opens the project before running tests. |
 | working_directory | string | false |  | Working directory where the action will run. |
 | log_level | string | false | INFO | Verbosity level (ERROR|WARN|INFO|DEBUG). |
 | dry_run | string | false | false | If true, simulate the action without side effects. |

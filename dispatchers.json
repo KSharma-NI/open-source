@@ -600,6 +600,51 @@
       }
     }
   },
+  "Invoke-RunUnitTestsDocker": {
+    "description": "Run LabVIEW unit tests in Docker container with VIPM and LUnit setup. DockerImage: Docker image to use (e.g., nationalinstruments/labview:2026q1-windows). LVVersion: LabVIEW version (e.g., \"2026\"). LVBitness: LabVIEW bitness (\"32\" or \"64\"). ProjectPath: Optional path to LabVIEW project file relative to workspace. WorkspacePath: Path to mount as workspace in container. OpenProjectBeforeRun: If set, opens project before running tests. DryRun: If set, prints the command instead of executing it. gcliPath: Optional path prepended to PATH for locating the g CLI.",
+    "parameters": {
+      "DockerImage": {
+        "type": "string",
+        "required": true,
+        "description": "Docker image to use (e"
+      },
+      "DryRun": {
+        "type": "boolean",
+        "required": false,
+        "description": "If set, prints the command instead of executing it"
+      },
+      "gcliPath": {
+        "type": "string",
+        "required": false,
+        "description": "Optional path prepended to PATH for locating the g CLI"
+      },
+      "LVBitness": {
+        "type": "string",
+        "required": true,
+        "description": "LabVIEW bitness (\"32\" or \"64\")"
+      },
+      "LVVersion": {
+        "type": "string",
+        "required": true,
+        "description": "LabVIEW version (e"
+      },
+      "OpenProjectBeforeRun": {
+        "type": "boolean",
+        "required": false,
+        "description": "If set, opens project before running tests"
+      },
+      "ProjectPath": {
+        "type": "string",
+        "required": false,
+        "description": "Optional path to LabVIEW project file relative to workspace"
+      },
+      "WorkspacePath": {
+        "type": "string",
+        "required": false,
+        "description": "Path to mount as workspace in container"
+      }
+    }
+  },
   "Invoke-SetDevelopmentMode": {
     "description": "Configures the repository for development mode. RelativePath: Normalized path to the project root relative to the working directory. DryRun: If set, prints the command instead of executing it. gcliPath: Optional path prepended to PATH for locating the g CLI.",
     "parameters": {
