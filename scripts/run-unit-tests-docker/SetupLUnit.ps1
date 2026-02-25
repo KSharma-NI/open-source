@@ -58,6 +58,7 @@ try {
         # Create directories
         New-Item -ItemType Directory -Path $jkiDir -Force | Out-Null
         New-Item -ItemType Directory -Path $vipmDir -Force | Out-Null
+        Write-Verbose "Created directories: $jkiDir and $vipmDir"
         
         # Copy jki.conf if exists
         $sourceJkiConf = Join-Path $VIPMConfigDir "jki.conf"
@@ -65,6 +66,9 @@ try {
             $destJkiConf = Join-Path $jkiDir "jki.conf"
             Copy-Item -Path $sourceJkiConf -Destination $destJkiConf -Force
             Write-Information "Copied jki.conf to $destJkiConf" -InformationAction Continue
+            Write-Verbose "jki.conf size: $((Get-Item $destJkiConf).Length) bytes"
+        } else {
+            Write-Warning "jki.conf not found at $sourceJkiConf"
         }
         
         # Copy Settings.ini if exists
@@ -73,9 +77,17 @@ try {
             $destSettingsIni = Join-Path $vipmDir "Settings.ini"
             Copy-Item -Path $sourceSettingsIni -Destination $destSettingsIni -Force
             Write-Information "Copied Settings.ini to $destSettingsIni" -InformationAction Continue
+            Write-Verbose "Settings.ini size: $((Get-Item $destSettingsIni).Length) bytes"
+        } else {
+            Write-Warning "Settings.ini not found at $sourceSettingsIni"
         }
         
         Write-Information "VIPM configuration applied successfully" -InformationAction Continue
+    } else {
+        if ($VIPMConfigDir) {
+            Write-Warning "VIPMConfigDir specified but not found: $VIPMConfigDir"
+        }
+        Write-Information "No VIPM configuration provided, using defaults" -InformationAction Continue
     }
     
     $VipmExe = "C:\Program Files\JKI\VI Package Manager\support\vipm.exe"
