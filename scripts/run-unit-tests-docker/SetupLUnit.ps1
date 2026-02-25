@@ -172,15 +172,39 @@ try {
     $installExitCode = $LASTEXITCODE
     Write-Verbose "LUnit installation exit code: $installExitCode"
     
-    if ($installExitCode -eq 0) {
-        Write-Information "Waiting 180 seconds to complete mass compile..." -InformationAction Continue
-        Start-Sleep -Seconds 180
-        Write-Verbose "Wait complete"
-        
+    # VIPM may timeout during mass compilation but continue in background
+    # Check for actual installation success rather than just exit code
+    if ($installExitCode -ne 0) {
+        Write-Warning "VIPM install command returned exit code: $installExitCode (may be a timeout)"
+        Write-Information "Waiting for background mass compilation to complete..." -InformationAction Continue
+    }
+    
+    # Wait for mass compile to complete (whether timeout occurred or not)
+    Write-Information "Waiting 240 seconds for mass compilation to complete..." -InformationAction Continue
+    Start-Sleep -Seconds 240
+    Write-Verbose "Wait complete"
+    
+    # Verify installation by checking if LUnit package is installed
+    Write-Information "Verifying LUnit for G-CLI installation..." -InformationAction Continue
+    
+    # Query installed packages
+    $listOutput = & $VipmExe list --installed --labview-version $LVVersion --labview-bitness $LVBitness 2>&1
+    $listExitCode = $LASTEXITCODE
+    
+    Write-Verbose "Package list exit code: $listExitCode"
+    Write-Verbose "Package list output:`n$listOutput"
+    
+    # Check if LUnit package appears in the list
+    $lunitInstalled = $listOutput | Select-String -Pattern "sas_workshops_lib_lunit_for_g_cli" -Quiet
+    
+    if ($lunitInstalled) {
         Write-Information "LUnit for G-CLI installed successfully!" -InformationAction Continue
         exit 0
     } else {
-        throw "Failed to install LUnit for G-CLI (exit code: $installExitCode)"
+        # If not found, show what packages are installed for debugging
+        Write-Warning "Installed packages:"
+        Write-Warning $listOutput
+        throw "LUnit for G-CLI package not found in installed packages list"
     }
 }
 catch {
