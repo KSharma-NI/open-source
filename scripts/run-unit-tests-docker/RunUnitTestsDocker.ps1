@@ -91,7 +91,7 @@ try {
     
     $setupArgs = $baseDockerArgs + @(
         'powershell.exe', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command',
-        "& C:\workspace\scripts\run-unit-tests-docker\SetupLunit.ps1 -LVVersion $LVVersion -LVBitness $LVBitness -Verbose -InformationAction Continue"
+        "& C:\workspace\scripts\run-unit-tests-docker\SetupLUnit.ps1 -LVVersion $LVVersion -LVBitness $LVBitness -Verbose -InformationAction Continue"
     )
 
     Write-Verbose "Running Docker command: docker $($setupArgs -join ' ')"
