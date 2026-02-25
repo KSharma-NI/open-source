@@ -145,6 +145,84 @@ try {
         Write-Verbose "VIPM executable verified at $VipmExe"
     }
     
+    # Configure LabVIEW settings before installing packages
+    Write-Information "Configuring LabVIEW settings..." -InformationAction Continue
+    
+    $LabVIEWBasePath = if ($LVBitness -eq "64") {
+        "C:\Program Files\National Instruments\LabVIEW $LVVersion"
+    } else {
+        "C:\Program Files (x86)\National Instruments\LabVIEW $LVVersion"
+    }
+    
+    $IniPath = Join-Path $LabVIEWBasePath "LabVIEW.ini"
+    $LabVIEWExePath = Join-Path $LabVIEWBasePath "LabVIEW.exe"
+    
+    Write-Verbose "LabVIEW base path: $LabVIEWBasePath"
+    Write-Verbose "INI file path: $IniPath"
+    Write-Verbose "LabVIEW executable: $LabVIEWExePath"
+    
+    # Settings required for LUnit testing
+    $RequiredSettings = @(
+        "server.tcp.enabled=TRUE",
+        "server.tcp.access=+127.0.0.1;+localhost;+*",
+        "server.viscripting.ShowScriptingOperationsInEditor=TRUE"
+    )
+    
+    # Create INI file if it doesn't exist
+    if (-not (Test-Path $IniPath)) {
+        Write-Information "LabVIEW.ini not found at $IniPath" -InformationAction Continue
+        
+        if (-not (Test-Path $LabVIEWExePath)) {
+            throw "LabVIEW executable not found at $LabVIEWExePath. Ensure LabVIEW $LVVersion ($LVBitness-bit) is installed."
+        }
+        
+        Write-Information "Launching LabVIEW to generate ini file..."
+        
+        $lvProcess = Start-Process -FilePath $LabVIEWExePath -PassThru
+        Write-Verbose "LabVIEW started with PID: $($lvProcess.Id)"
+        Write-Information "Waiting 60 seconds for LabVIEW to generate ini file..." -InformationAction Continue
+        Start-Sleep -Seconds 60
+        
+        if (-not $lvProcess.HasExited) {
+            Write-Verbose "Terminating LabVIEW process..."
+            Stop-Process -Id $lvProcess.Id -Force -ErrorAction SilentlyContinue
+            Write-Information "LabVIEW closed" -InformationAction Continue
+        } else {
+            Write-Verbose "LabVIEW process already exited"
+        }
+        
+        if (-not (Test-Path $IniPath)) {
+            throw "INI file not found at $IniPath after launching LabVIEW"
+        }
+        
+        Write-Verbose "INI file created successfully"
+    } else {
+        Write-Verbose "INI file already exists at $IniPath"
+    }
+    
+    # Update INI file with required settings
+    $CurrentContent = Get-Content -Path $IniPath -ErrorAction Stop
+    Write-Verbose "Current INI file has $($CurrentContent.Count) lines"
+    
+    $NewLinesToAdd = @()
+    
+    foreach ($Setting in $RequiredSettings) {
+        if ($CurrentContent -notcontains $Setting) {
+            $NewLinesToAdd += $Setting
+            Write-Information "Will add: $Setting"
+        } else {
+            Write-Verbose "Already exists: $Setting"
+        }
+    }
+    
+    if ($NewLinesToAdd.Count -gt 0) {
+        Write-Information "Adding $($NewLinesToAdd.Count) new settings to $IniPath"
+        Add-Content -Path $IniPath -Value $NewLinesToAdd -Encoding ASCII
+        Write-Information "Successfully updated LabVIEW.ini"
+    } else {
+        Write-Information "LabVIEW.ini is already configured"
+    }
+        
     # Refresh package list
     Write-Information "Refreshing VIPM package list..." -InformationAction Continue
     Write-Verbose "Running: vipm.exe package-list-refresh"

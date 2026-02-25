@@ -104,9 +104,9 @@ try {
     Write-Information "Setting up VIPM and LUnit in container..." -InformationAction Continue
     
     $setupCmd = if ($VIPMConfigDir) {
-        "Set-Location C:\scripts; .\SetupLUnit.ps1 -LVVersion $LVVersion -LVBitness $LVBitness -VIPMConfigDir 'C:\vipm-config' -Verbose -InformationAction Continue"
+        "`$InformationPreference = 'Continue'; Set-Location C:\scripts; .\SetupLUnit.ps1 -LVVersion $LVVersion -LVBitness $LVBitness -VIPMConfigDir 'C:\vipm-config' -Verbose"
     } else {
-        "Set-Location C:\scripts; .\SetupLUnit.ps1 -LVVersion $LVVersion -LVBitness $LVBitness -Verbose -InformationAction Continue"
+        "`$InformationPreference = 'Continue'; Set-Location C:\scripts; .\SetupLUnit.ps1 -LVVersion $LVVersion -LVBitness $LVBitness -Verbose"
     }
     
     $setupArgs = $baseDockerArgs + @(
@@ -123,7 +123,7 @@ try {
     # Step 2: Run unit tests inside container
     Write-Information "Running unit tests in container..." -InformationAction Continue
     
-    $testScriptCmd = "Set-Location C:\scripts; .\RunUnitTests.ps1 -LVVersion $LVVersion -LVBitness $LVBitness"
+    $testScriptCmd = "`$InformationPreference = 'Continue'; Set-Location C:\scripts; .\RunUnitTests.ps1 -LVVersion $LVVersion -LVBitness $LVBitness"
     
     if ($ProjectPath) {
         $testScriptCmd += " -ProjectPath 'C:\workspace\$ProjectPath'"
@@ -132,7 +132,7 @@ try {
         $testScriptCmd += " -OpenProjectBeforeRun"
     }
     
-    $testScriptCmd += " -Verbose -InformationAction Continue"
+    $testScriptCmd += " -Verbose"
 
     $testArgs = $baseDockerArgs + @(
         'powershell.exe', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', $testScriptCmd
