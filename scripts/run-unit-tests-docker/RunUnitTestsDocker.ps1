@@ -21,6 +21,9 @@
 .PARAMETER WorkspacePath
   Path to mount as /workspace in the container (defaults to current directory).
 
+.PARAMETER VIPMConfigDir
+  Path to directory containing VIPM configuration files (jki.conf, Settings.ini).
+
 .PARAMETER OpenProjectBeforeRun
   If present, opens the project before running tests.
 
@@ -48,6 +51,9 @@ param(
 
     [Parameter(Mandatory = $false)]
     [string]$WorkspacePath = (Get-Location).Path,
+
+    [Parameter(Mandatory = $false)]
+    [string]$VIPMConfigDir,
 
     [Parameter(Mandatory = $false)]
     [switch]$OpenProjectBeforeRun

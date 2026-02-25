@@ -18,6 +18,9 @@ inputs:
   workspace_path:
     description: 'Path to mount as workspace in container.'
     required: false
+  vipm_config_dir:
+    description: 'Path to directory containing VIPM config files (jki.conf, Settings.ini).'
+    required: false
   open_project_before_run:
     description: 'If true, opens the project before running tests.'
     required: false
@@ -48,6 +51,7 @@ runs:
         }
         if ('${{ inputs.project_path }}') { $args['ProjectPath'] = '${{ inputs.project_path }}' }
         if ('${{ inputs.workspace_path }}') { $args['WorkspacePath'] = '${{ inputs.workspace_path }}' }
+        if ('${{ inputs.vipm_config_dir }}') { $args['VIPMConfigDir'] = '${{ inputs.vipm_config_dir }}' }
         if ('${{ inputs.open_project_before_run }}' -eq 'true') { $args['OpenProjectBeforeRun'] = $true }
         
         $params = @{

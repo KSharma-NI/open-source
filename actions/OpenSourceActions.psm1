@@ -492,6 +492,7 @@ function Invoke-RunUnitTests {
 # LVBitness: LabVIEW bitness ("32" or "64").
 # ProjectPath: Optional path to LabVIEW project file relative to workspace.
 # WorkspacePath: Path to mount as workspace in container.
+# VIPMConfigDir: Path to directory containing VIPM config files (jki.conf, Settings.ini).
 # OpenProjectBeforeRun: If set, opens project before running tests.
 # DryRun: If set, prints the command instead of executing it.
 # gcliPath: Optional path prepended to PATH for locating the g CLI.
@@ -503,6 +504,7 @@ function Invoke-RunUnitTestsDocker {
         [Parameter(Mandatory)] [ValidateSet("32", "64")] [string] $LVBitness,
         [Parameter()] [string] $ProjectPath,
         [Parameter()] [string] $WorkspacePath,
+        [Parameter()] [string] $VIPMConfigDir,
         [switch] $OpenProjectBeforeRun,
         [switch] $DryRun,
         [string] $gcliPath
@@ -516,6 +518,7 @@ function Invoke-RunUnitTestsDocker {
     }
     if ($ProjectPath) { $arguments['ProjectPath'] = $ProjectPath }
     if ($WorkspacePath) { $arguments['WorkspacePath'] = $WorkspacePath }
+    if ($VIPMConfigDir) { $arguments['VIPMConfigDir'] = $VIPMConfigDir }
     if ($OpenProjectBeforeRun) { $arguments['OpenProjectBeforeRun'] = $true }
     
     $result = Invoke-OpenSourceActionScript `
