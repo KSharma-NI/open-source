@@ -69,19 +69,17 @@ try {
         throw "Failed to pull Docker image: $DockerImage"
     }
 
-    $normalizedWorkspace = $WorkspacePath.Replace('\', '/')
-    if ($normalizedWorkspace -match '^([A-Z]):(.+)$') {
-        # Convert Windows path to Docker volume format: C:\path -> /c/path
-        $normalizedWorkspace = "/$($matches[1].ToLower())$($matches[2])"
-    }
-    
-    Write-Verbose "Normalized workspace for Docker: $normalizedWorkspace"
+    # Determine script directory (where this script and helpers are located)
+    $ScriptDir = $PSScriptRoot
+    Write-Verbose "Script directory: $ScriptDir"
+    Write-Verbose "Workspace path: $WorkspacePath"
 
-    # Base docker run arguments
+    # Base docker run arguments - mount both workspace and scripts
     $baseDockerArgs = @(
         'run',
         '--rm',
         '-v', "${WorkspacePath}:C:\workspace",
+        '-v', "${ScriptDir}:C:\scripts",
         '-w', 'C:\workspace',
         $DockerImage
     )
@@ -89,9 +87,10 @@ try {
     # Step 1: Setup VIPM and LUnit inside container
     Write-Information "Setting up VIPM and LUnit in container..." -InformationAction Continue
     
+    $setupCmd = "Set-Location C:\scripts; .\SetupLUnit.ps1 -LVVersion $LVVersion -LVBitness $LVBitness -Verbose -InformationAction Continue"
+    
     $setupArgs = $baseDockerArgs + @(
-        'powershell.exe', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command',
-        "& C:\workspace\scripts\run-unit-tests-docker\SetupLUnit.ps1 -LVVersion $LVVersion -LVBitness $LVBitness -Verbose -InformationAction Continue"
+        'powershell.exe', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', $setupCmd
     )
 
     Write-Verbose "Running Docker command: docker $($setupArgs -join ' ')"
@@ -101,10 +100,10 @@ try {
         throw "Failed to setup VIPM and LUnit (exit code: $LASTEXITCODE)"
     }
 
-    # Run unit tests inside container
+    # Step 2: Run unit tests inside container
     Write-Information "Running unit tests in container..." -InformationAction Continue
     
-    $testScriptCmd = "& C:\workspace\scripts\run-unit-tests-docker\RunUnitTests.ps1 -LVVersion $LVVersion -LVBitness $LVBitness"
+    $testScriptCmd = "Set-Location C:\scripts; .\RunUnitTests.ps1 -LVVersion $LVVersion -LVBitness $LVBitness"
     
     if ($ProjectPath) {
         $testScriptCmd += " -ProjectPath 'C:\workspace\$ProjectPath'"
@@ -116,8 +115,7 @@ try {
     $testScriptCmd += " -Verbose -InformationAction Continue"
 
     $testArgs = $baseDockerArgs + @(
-        'powershell.exe', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command',
-        $testScriptCmd
+        'powershell.exe', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', $testScriptCmd
     )
 
     Write-Verbose "Running Docker command: docker $($testArgs -join ' ')"
