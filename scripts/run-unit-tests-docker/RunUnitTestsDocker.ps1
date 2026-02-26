@@ -94,7 +94,7 @@ try {
     # Base docker run arguments
     $baseDockerArgs = @(
         'run',
-        '--rm',
+        '--rm'
     ) + $volumeMounts + @(
         '-w', 'C:\workspace',
         $DockerImage
