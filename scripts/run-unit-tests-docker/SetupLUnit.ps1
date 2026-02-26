@@ -48,9 +48,7 @@ $ProgressPreference = 'SilentlyContinue'
 function Write-Log {
     param([string]$Message, [string]$Level = 'INFO')
     $timestamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
-    $output = "[$timestamp] [$Level] $Message"
-    Write-Output $output
-    [Console]::WriteLine($output)
+    Write-Output "[$timestamp] [$Level] $Message"
 }
 
 try {
@@ -76,7 +74,7 @@ try {
             Write-Log "Copied jki.conf to $destJkiConf"
             Write-Verbose "jki.conf size: $((Get-Item $destJkiConf).Length) bytes"
         } else {
-            Write-Warning "jki.conf not found at $sourceJkiConf"
+            Write-Log "WARNING: jki.conf not found at $sourceJkiConf" "WARN"
         }
         
         # Copy Settings.ini if exists
@@ -87,13 +85,13 @@ try {
             Write-Log "Copied Settings.ini to $destSettingsIni" 
             Write-Verbose "Settings.ini size: $((Get-Item $destSettingsIni).Length) bytes"
         } else {
-            Write-Warning "Settings.ini not found at $sourceSettingsIni"
+            Write-Log "WARNING: Settings.ini not found at $sourceSettingsIni" "WARN"
         }
         
         Write-Log "VIPM configuration applied successfully" 
     } else {
         if ($VIPMConfigDir) {
-            Write-Warning "VIPMConfigDir specified but not found: $VIPMConfigDir"
+            Write-Log "WARNING: VIPMConfigDir specified but not found: $VIPMConfigDir" "WARN"
         }
         Write-Log "No VIPM configuration provided, using defaults" 
     }
@@ -281,14 +279,12 @@ try {
     Write-Log "Package list output:`n$listOutput"
     
     # Check if LUnit package appears in the list
-    $lunitInstalled = $listOutput | Select-String -Pattern "sas_workshops_lib_lunit_for_g_cli" -Quiet
-    
-    if ($lunitInstalled) {
-        Write-Log "LUnit for G-CLI installed successfully!" 
+    if ($listOutput -match "sas_workshops_lib_lunit_for_g_cli") {
+        Write-Log "LUnit for G-CLI installed successfully!"
         exit 0
     } else {
-        # If not found, show what packages are installed for debugging
-        Write-Log "Installed packages:"
+        Write-Log "ERROR: LUnit for G-CLI package not found in installed packages list" "ERROR"
+        Write-Output "Installed packages:"
         Write-Output $listOutput
         throw "LUnit for G-CLI package not found in installed packages list"
     }
