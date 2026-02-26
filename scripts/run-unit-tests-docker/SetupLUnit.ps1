@@ -279,20 +279,30 @@ try {
     Write-Log "Verifying LUnit for G-CLI installation..." 
     
     # Query installed packages
-    $listOutput = & $VipmExe list --installed --labview-version $LVVersion --labview-bitness $LVBitness 2>&1
+    $vipmOutput = & $VipmExe list --installed --labview-version $LVVersion --labview-bitness $LVBitness 2>&1
     $listExitCode = $LASTEXITCODE
     
     Write-Verbose "Package list exit code: $listExitCode"
-    Write-Log "Package list output:`n$listOutput"
+    $listOutputString = $vipmOutput | Out-String
+    Write-Verbose "Package list output:`n$listOutputString"
     
-    # Check if LUnit package appears in the list
-    if ($listOutput -match "sas_workshops_lib_lunit_for_g_cli") {
+    # Display all output lines
+    $vipmOutput | ForEach-Object { Write-Output $_ }
+    
+    # Check if LUnit package appears in the output
+    $packageFound = $false
+    foreach ($line in $vipmOutput) {
+        if ($line -match "sas_workshops_lib_lunit_for_g_cli") {
+            $packageFound = $true
+            break
+        }
+    }
+    
+    if ($packageFound) {
         Write-Log "LUnit for G-CLI installed successfully!"
         exit 0
     } else {
         Write-Log "ERROR: LUnit for G-CLI package not found in installed packages list" "ERROR"
-        Write-Output "Installed packages:"
-        Write-Output $listOutput
         throw "LUnit for G-CLI package not found in installed packages list"
     }
 }
