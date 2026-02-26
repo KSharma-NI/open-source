@@ -279,8 +279,10 @@ try {
     Write-Log "Verifying LUnit for G-CLI installation..." 
     
     # Query installed packages
+    $ErrorActionPreference = 'Continue'
     $vipmOutput = & $VipmExe list --installed --labview-version $LVVersion --labview-bitness $LVBitness 2>&1
     $listExitCode = $LASTEXITCODE
+    $ErrorActionPreference = 'Stop'
     
     Write-Verbose "Package list exit code: $listExitCode"
     $listOutputString = $vipmOutput | Out-String
@@ -303,6 +305,8 @@ try {
         exit 0
     } else {
         Write-Log "ERROR: LUnit for G-CLI package not found in installed packages list" "ERROR"
+        Write-Output "Installed packages:"
+        Write-Output $listOutputString
         throw "LUnit for G-CLI package not found in installed packages list"
     }
 }
