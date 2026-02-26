@@ -53,7 +53,7 @@ function Write-Log {
 
 try {
     Write-Verbose "Starting LUnit for G-CLI setup process..."
-    Write-Information "Setting up LUnit for LabVIEW $LVVersion ($LVBitness-bit)" --InformationAction Continue
+    Write-Information "Setting up LUnit for LabVIEW $LVVersion ($LVBitness-bit)" -InformationAction Continue
 
     if ($VIPMConfigDir -and (Test-Path $VIPMConfigDir)) {
         Write-Log "Configuring VIPM from provided config directory..." 
