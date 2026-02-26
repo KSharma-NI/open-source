@@ -48,7 +48,9 @@ $ProgressPreference = 'SilentlyContinue'
 function Write-Log {
     param([string]$Message, [string]$Level = 'INFO')
     $timestamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
-    Write-Output "[$timestamp] [$Level] $Message"
+    $output = "[$timestamp] [$Level] $Message"
+    Write-Output $output
+    [Console]::WriteLine($output)
 }
 
 try {
@@ -286,8 +288,8 @@ try {
         exit 0
     } else {
         # If not found, show what packages are installed for debugging
-        Write-Warning "Installed packages:"
-        Write-Warning $listOutput
+        Write-Log "Installed packages:"
+        Write-Output $listOutput
         throw "LUnit for G-CLI package not found in installed packages list"
     }
 }

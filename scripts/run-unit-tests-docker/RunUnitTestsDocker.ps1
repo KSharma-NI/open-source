@@ -104,9 +104,9 @@ try {
     Write-Information "Setting up VIPM and LUnit in container..." -InformationAction Continue
     
     $setupCmd = if ($VIPMConfigDir) {
-        "`$InformationPreference = 'Continue'; Set-Location C:\scripts; .\SetupLUnit.ps1 -LVVersion $LVVersion -LVBitness $LVBitness -VIPMConfigDir 'C:\vipm-config' -Verbose *>&1"
+        "`$InformationPreference = 'Continue'; Set-Location C:\scripts; .\SetupLUnit.ps1 -LVVersion $LVVersion -LVBitness $LVBitness -VIPMConfigDir 'C:\vipm-config' -Verbose"
     } else {
-        "`$InformationPreference = 'Continue'; Set-Location C:\scripts; .\SetupLUnit.ps1 -LVVersion $LVVersion -LVBitness $LVBitness -Verbose *>&1"
+        "`$InformationPreference = 'Continue'; Set-Location C:\scripts; .\SetupLUnit.ps1 -LVVersion $LVVersion -LVBitness $LVBitness -Verbose"
     }
     
     $setupArgs = $baseDockerArgs + @(
@@ -132,7 +132,7 @@ try {
         $testScriptCmd += " -OpenProjectBeforeRun"
     }
     
-    $testScriptCmd += " -Verbose *>&1"
+    $testScriptCmd += " -Verbose"
 
     $testArgs = $baseDockerArgs + @(
         'powershell.exe', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', $testScriptCmd
