@@ -45,10 +45,17 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
 
+# Ensure output is immediately flushed in Docker containers
+$PSDefaultParameterValues = @{
+    '*:Verbose' = $VerbosePreference
+}
+
 function Write-Log {
     param([string]$Message, [string]$Level = 'INFO')
     $timestamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
-    Write-Output "[$timestamp] [$Level] $Message"
+    $output = "[$timestamp] [$Level] $Message"
+    Write-Output $output
+    [System.Console]::Out.Flush()
 }
 
 try {

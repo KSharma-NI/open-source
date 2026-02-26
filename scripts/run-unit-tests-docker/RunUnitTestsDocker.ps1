@@ -69,7 +69,7 @@ try {
     
     # Pull Docker image
     Write-Information "Pulling Docker image..." -InformationAction Continue
-    docker pull $DockerImage
+    docker pull $DockerImage 2>&1 | ForEach-Object { Write-Information $_ -InformationAction Continue }
     
     if ($LASTEXITCODE -ne 0) {
         throw "Failed to pull Docker image: $DockerImage"
@@ -123,7 +123,7 @@ try {
     ) + $setupScriptArgs
 
     Write-Verbose "Running Docker command: docker $($setupArgs -join ' ')"
-    & docker @setupArgs
+    & docker @setupArgs 2>&1 | ForEach-Object { Write-Information $_ -InformationAction Continue }
     
     if ($LASTEXITCODE -ne 0) {
         throw "Failed to setup VIPM and LUnit (exit code: $LASTEXITCODE)"
@@ -156,7 +156,7 @@ try {
     ) + $testScriptArgs
 
     Write-Verbose "Running Docker command: docker $($testArgs -join ' ')"
-    & docker @testArgs
+    & docker @testArgs 2>&1 | ForEach-Object { Write-Information $_ -InformationAction Continue }
     
     $exitCode = $LASTEXITCODE
     
