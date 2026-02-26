@@ -248,17 +248,15 @@ try {
     
     Write-Verbose "Package list refreshed successfully"
 
-    Write-Log "Waiting 30 seconds for VIPM to complete background refresh..." 
-    Start-Sleep -Seconds 30
+    Write-Log "Waiting 60 seconds for VIPM to complete background refresh..." 
+    Start-Sleep -Seconds 60
     Write-Verbose "Wait complete, proceeding with installation"
         
     # Install LUnit for G-CLI
     Write-Log "Installing LUnit for G-CLI for LabVIEW $LVVersion ($LVBitness-bit)..." 
     Write-Verbose "Running: vipm.exe install sas_workshops_lib_lunit_for_g_cli --labview-version $LVVersion --labview-bitness $LVBitness"
     
-    & $VipmExe install sas_workshops_lib_lunit_for_g_cli `
-              --labview-version $LVVersion `
-              --labview-bitness $LVBitness
+    & $VipmExe install sas_workshops_lib_lunit_for_g_cli
     
     $installExitCode = $LASTEXITCODE
     Write-Verbose "LUnit installation exit code: $installExitCode"
@@ -280,7 +278,7 @@ try {
     
     # Query installed packages
     $ErrorActionPreference = 'Continue'
-    $vipmOutput = & $VipmExe list --installed --labview-version $LVVersion --labview-bitness $LVBitness 2>&1
+    $vipmOutput = & $VipmExe list --installed 2>&1
     $listExitCode = $LASTEXITCODE
     $ErrorActionPreference = 'Stop'
     
