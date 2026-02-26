@@ -94,7 +94,8 @@ try {
     # Base docker run arguments
     $baseDockerArgs = @(
         'run',
-        '--rm'
+        '--rm',
+        '-i'
     ) + $volumeMounts + @(
         '-w', 'C:\workspace',
         $DockerImage
@@ -104,9 +105,9 @@ try {
     Write-Information "Setting up VIPM and LUnit in container..." -InformationAction Continue
     
     $setupCmd = if ($VIPMConfigDir) {
-        "`$InformationPreference = 'Continue'; Set-Location C:\scripts; .\SetupLUnit.ps1 -LVVersion $LVVersion -LVBitness $LVBitness -VIPMConfigDir 'C:\vipm-config' -Verbose"
+        "`Set-Location C:\scripts; .\SetupLUnit.ps1 -LVVersion $LVVersion -LVBitness $LVBitness -VIPMConfigDir 'C:\vipm-config' -Verbose"
     } else {
-        "`$InformationPreference = 'Continue'; Set-Location C:\scripts; .\SetupLUnit.ps1 -LVVersion $LVVersion -LVBitness $LVBitness -Verbose"
+        "Set-Location C:\scripts; .\SetupLUnit.ps1 -LVVersion $LVVersion -LVBitness $LVBitness -Verbose"
     }
     
     $setupArgs = $baseDockerArgs + @(
