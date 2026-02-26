@@ -44,14 +44,19 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
-$InformationPreference = 'Continue'
+
+function Write-Log {
+    param([string]$Message, [string]$Level = 'INFO')
+    $timestamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
+    Write-Output "[$timestamp] [$Level] $Message"
+}
 
 try {
     Write-Verbose "Starting LUnit for G-CLI setup process..."
-    Write-Information "Setting up LUnit for LabVIEW $LVVersion ($LVBitness-bit)"
+    Write-Log "Setting up LUnit for LabVIEW $LVVersion ($LVBitness-bit)"
 
     if ($VIPMConfigDir -and (Test-Path $VIPMConfigDir)) {
-        Write-Information "Configuring VIPM from provided config directory..." 
+        Write-Log "Configuring VIPM from provided config directory..." 
         
         $jkiDir = "C:\ProgramData\JKI"
         $vipmDir = "C:\ProgramData\JKI\VIPM"
@@ -66,7 +71,7 @@ try {
         if (Test-Path $sourceJkiConf) {
             $destJkiConf = Join-Path $jkiDir "jki.conf"
             Copy-Item -Path $sourceJkiConf -Destination $destJkiConf -Force
-            Write-Information "Copied jki.conf to $destJkiConf" 
+            Write-Log "Copied jki.conf to $destJkiConf"
             Write-Verbose "jki.conf size: $((Get-Item $destJkiConf).Length) bytes"
         } else {
             Write-Warning "jki.conf not found at $sourceJkiConf"
@@ -77,34 +82,34 @@ try {
         if (Test-Path $sourceSettingsIni) {
             $destSettingsIni = Join-Path $vipmDir "Settings.ini"
             Copy-Item -Path $sourceSettingsIni -Destination $destSettingsIni -Force
-            Write-Information "Copied Settings.ini to $destSettingsIni" 
+            Write-Log "Copied Settings.ini to $destSettingsIni" 
             Write-Verbose "Settings.ini size: $((Get-Item $destSettingsIni).Length) bytes"
         } else {
             Write-Warning "Settings.ini not found at $sourceSettingsIni"
         }
         
-        Write-Information "VIPM configuration applied successfully" 
+        Write-Log "VIPM configuration applied successfully" 
     } else {
         if ($VIPMConfigDir) {
             Write-Warning "VIPMConfigDir specified but not found: $VIPMConfigDir"
         }
-        Write-Information "No VIPM configuration provided, using defaults" 
+        Write-Log "No VIPM configuration provided, using defaults" 
     }
     
     $VipmExe = "C:\Program Files\JKI\VI Package Manager\support\vipm.exe"
     
     # Check if VIPM is already installed
     if (Test-Path $VipmExe) {
-        Write-Information "VIPM is already installed at $VipmExe" 
+        Write-Log "VIPM is already installed at $VipmExe" 
         Write-Verbose "Skipping VIPM installation"
     } else {
-        Write-Information "VIPM not found. Installing VIPM..." 
+        Write-Log "VIPM not found. Installing VIPM..." 
         
         $VipmInstallerPath = Join-Path $env:TEMP "vipm-setup.exe"
         Write-Verbose "VIPM installer will be downloaded to: $VipmInstallerPath"
         
         # Download VIPM installer
-        Write-Information "Downloading VIPM from $VipmInstallerUrl..." 
+        Write-Log "Downloading VIPM from $VipmInstallerUrl..." 
         Invoke-WebRequest -Uri $VipmInstallerUrl -OutFile $VipmInstallerPath
         
         if (-not (Test-Path $VipmInstallerPath)) {
@@ -115,7 +120,7 @@ try {
         Write-Verbose "Downloaded installer size: $($installerSize.ToString('F2')) MB"
         
         # Install VIPM silently
-        Write-Information "Installing VIPM..." 
+        Write-Log "Installing VIPM..." 
         Write-Verbose "Running installer with arguments: /quiet /norestart"
         
         $process = Start-Process -FilePath $VipmInstallerPath `
@@ -127,7 +132,7 @@ try {
         Write-Verbose "VIPM installer exit code: $exitCode"
         
         if ($exitCode -eq 0) {
-            Write-Information "VIPM installed successfully" 
+            Write-Log "VIPM installed successfully" 
             
             # Clean up installer
             if (Test-Path $VipmInstallerPath) {
@@ -147,7 +152,7 @@ try {
     }
     
     # Configure LabVIEW settings before installing packages
-    Write-Host "Configuring LabVIEW settings..." 
+    Write-Log "Configuring LabVIEW settings..." 
     
     $LabVIEWBasePath = if ($LVBitness -eq "64") {
         "C:\Program Files\National Instruments\LabVIEW $LVVersion"
@@ -171,23 +176,23 @@ try {
     
     # Create INI file if it doesn't exist
     if (-not (Test-Path $IniPath)) {
-        Write-Information "LabVIEW.ini not found at $IniPath" 
+        Write-Log "LabVIEW.ini not found at $IniPath" 
         
         if (-not (Test-Path $LabVIEWExePath)) {
             throw "LabVIEW executable not found at $LabVIEWExePath. Ensure LabVIEW $LVVersion ($LVBitness-bit) is installed."
         }
         
-        Write-Information "Launching LabVIEW to generate ini file..."
+        Write-Log "Launching LabVIEW to generate ini file..."
         
         $lvProcess = Start-Process -FilePath $LabVIEWExePath -PassThru
         Write-Verbose "LabVIEW started with PID: $($lvProcess.Id)"
-        Write-Information "Waiting 60 seconds for LabVIEW to generate ini file..." 
+        Write-Log "Waiting 60 seconds for LabVIEW to generate ini file..." 
         Start-Sleep -Seconds 60
         
         if (-not $lvProcess.HasExited) {
             Write-Verbose "Terminating LabVIEW process..."
             Stop-Process -Id $lvProcess.Id -Force -ErrorAction SilentlyContinue
-            Write-Information "LabVIEW closed" 
+            Write-Log "LabVIEW closed" 
         } else {
             Write-Verbose "LabVIEW process already exited"
         }
@@ -210,22 +215,22 @@ try {
     foreach ($Setting in $RequiredSettings) {
         if ($CurrentContent -notcontains $Setting) {
             $NewLinesToAdd += $Setting
-            Write-Information "Will add: $Setting"
+            Write-Log "Will add: $Setting"
         } else {
             Write-Verbose "Already exists: $Setting"
         }
     }
     
     if ($NewLinesToAdd.Count -gt 0) {
-        Write-Information "Adding $($NewLinesToAdd.Count) new settings to $IniPath"
+        Write-Log "Adding $($NewLinesToAdd.Count) new settings to $IniPath"
         Add-Content -Path $IniPath -Value $NewLinesToAdd -Encoding ASCII
-        Write-Information "Successfully updated LabVIEW.ini"
+        Write-Log "Successfully updated LabVIEW.ini"
     } else {
-        Write-Information "LabVIEW.ini is already configured"
+        Write-Log "LabVIEW.ini is already configured"
     }
         
     # Refresh package list
-    Write-Information "Refreshing VIPM package list..." 
+    Write-Log "Refreshing VIPM package list..." 
     Write-Verbose "Running: vipm.exe package-list-refresh"
     
     & $VipmExe package-list-refresh
@@ -236,12 +241,12 @@ try {
     
     Write-Verbose "Package list refreshed successfully"
 
-    Write-Host "Waiting 30 seconds for VIPM to complete background refresh..." 
+    Write-Log "Waiting 30 seconds for VIPM to complete background refresh..." 
     Start-Sleep -Seconds 30
     Write-Verbose "Wait complete, proceeding with installation"
         
     # Install LUnit for G-CLI
-    Write-Host "Installing LUnit for G-CLI for LabVIEW $LVVersion ($LVBitness-bit)..." 
+    Write-Log "Installing LUnit for G-CLI for LabVIEW $LVVersion ($LVBitness-bit)..." 
     Write-Verbose "Running: vipm.exe install sas_workshops_lib_lunit_for_g_cli --labview-version $LVVersion --labview-bitness $LVBitness"
     
     & $VipmExe install sas_workshops_lib_lunit_for_g_cli `
@@ -255,29 +260,29 @@ try {
     # Check for actual installation success rather than just exit code
     if ($installExitCode -ne 0) {
         Write-Warning "VIPM install command returned exit code: $installExitCode (may be a timeout)"
-        Write-Information "Waiting for background mass compilation to complete..." 
+        Write-Log "Waiting for background mass compilation to complete..." 
     }
     
     # Wait for mass compile to complete (whether timeout occurred or not)
-    Write-Information "Waiting 240 seconds for mass compilation to complete..." 
+    Write-Log "Waiting 240 seconds for mass compilation to complete..." 
     Start-Sleep -Seconds 240
     Write-Verbose "Wait complete"
     
     # Verify installation by checking if LUnit package is installed
-    Write-Information "Verifying LUnit for G-CLI installation..." 
+    Write-Log "Verifying LUnit for G-CLI installation..." 
     
     # Query installed packages
     $listOutput = & $VipmExe list --installed --labview-version $LVVersion --labview-bitness $LVBitness 2>&1
     $listExitCode = $LASTEXITCODE
     
     Write-Verbose "Package list exit code: $listExitCode"
-    Write-Host "Package list output:`n$listOutput"
+    Write-Log "Package list output:`n$listOutput"
     
     # Check if LUnit package appears in the list
     $lunitInstalled = $listOutput | Select-String -Pattern "sas_workshops_lib_lunit_for_g_cli" -Quiet
     
     if ($lunitInstalled) {
-        Write-Host "LUnit for G-CLI installed successfully!" 
+        Write-Log "LUnit for G-CLI installed successfully!" 
         exit 0
     } else {
         # If not found, show what packages are installed for debugging
