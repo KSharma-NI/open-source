@@ -147,7 +147,7 @@ try {
     }
     
     # Configure LabVIEW settings before installing packages
-    Write-Information "Configuring LabVIEW settings..." 
+    Write-Host "Configuring LabVIEW settings..." 
     
     $LabVIEWBasePath = if ($LVBitness -eq "64") {
         "C:\Program Files\National Instruments\LabVIEW $LVVersion"
@@ -236,12 +236,12 @@ try {
     
     Write-Verbose "Package list refreshed successfully"
 
-    Write-Information "Waiting 30 seconds for VIPM to complete background refresh..." 
+    Write-Host "Waiting 30 seconds for VIPM to complete background refresh..." 
     Start-Sleep -Seconds 30
     Write-Verbose "Wait complete, proceeding with installation"
         
     # Install LUnit for G-CLI
-    Write-Information "Installing LUnit for G-CLI for LabVIEW $LVVersion ($LVBitness-bit)..." 
+    Write-Host "Installing LUnit for G-CLI for LabVIEW $LVVersion ($LVBitness-bit)..." 
     Write-Verbose "Running: vipm.exe install sas_workshops_lib_lunit_for_g_cli --labview-version $LVVersion --labview-bitness $LVBitness"
     
     & $VipmExe install sas_workshops_lib_lunit_for_g_cli `
@@ -271,13 +271,13 @@ try {
     $listExitCode = $LASTEXITCODE
     
     Write-Verbose "Package list exit code: $listExitCode"
-    Write-Verbose "Package list output:`n$listOutput"
+    Write-Host "Package list output:`n$listOutput"
     
     # Check if LUnit package appears in the list
     $lunitInstalled = $listOutput | Select-String -Pattern "sas_workshops_lib_lunit_for_g_cli" -Quiet
     
     if ($lunitInstalled) {
-        Write-Information "LUnit for G-CLI installed successfully!" 
+        Write-Host "LUnit for G-CLI installed successfully!" 
         exit 0
     } else {
         # If not found, show what packages are installed for debugging
